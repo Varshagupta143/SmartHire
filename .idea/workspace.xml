@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c96794a9-66be-42f2-8c4b-7eb5168b4296" name="Changes" comment="Uploading my updates">
-      <change beforePath="$PROJECT_DIR$/SmartHire-master/Backend/src/main/java/com/genius/smarthire/SmartHireApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/SmartHire-master/Backend/src/main/java/com/genius/smarthire/SmartHireApplication.java" afterDir="false" />
-    </list>
+    <list default="true" id="c96794a9-66be-42f2-8c4b-7eb5168b4296" name="Changes" comment="Uploading my updates" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -95,7 +93,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775200106920</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Uploading my updates">
+      <option name="closed" value="true" />
+      <created>1775201254689</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1775201254689</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
