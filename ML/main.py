@@ -5,6 +5,8 @@ from typing import List, Optional, Dict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
+import os
+import uvicorn
 
 app = FastAPI()
 
@@ -15,8 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── Models ───────────────────────────────────────────────────────────────────
-
 class MatchRequest(BaseModel):
     resume_content: Optional[str] = ""
     jobs: List[Dict]
@@ -25,8 +25,6 @@ class CandidateRequest(BaseModel):
     job_description: str
     job_title: Optional[str] = ""
     candidates: List[Dict]
-
-# ─── Constants ────────────────────────────────────────────────────────────────
 
 TECH_KEYWORDS = {
     "python","java","javascript","typescript","react","angular","vue",
@@ -55,11 +53,9 @@ EXPERIENCE_PATTERNS = [
 ]
 
 EDUCATION_SCORES = {
-    "phd":5,"doctorate":5,"master":4,"mtech":4,"mba":4,"msc":4,
-    "bachelor":3,"btech":3,"bsc":3,"be":3,"graduate":2,"diploma":1,
+    "phd": 5, "doctorate": 5, "master": 4, "mtech": 4, "mba": 4, "msc": 4,
+    "bachelor": 3, "btech": 3, "bsc": 3, "be": 3, "graduate": 2, "diploma": 1,
 }
-
-# ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def clean(text: str) -> str:
     if not text:
@@ -72,10 +68,12 @@ def clean(text: str) -> str:
 def extract_years(text: str) -> int:
     best = 0
     tl = text.lower()
-    for p in EXPERIENCE_PATTERNS:
-        for m in re.findall(p, tl):
-            try: best = max(best, int(m))
-            except: pass
+    for pattern in EXPERIENCE_PATTERNS:
+        for match in re.findall(pattern, tl):
+            try:
+                best = max(best, int(match))
+            except Exception:
+                pass
     return best
 
 def extract_edu(text: str) -> int:
@@ -90,8 +88,12 @@ def tfidf_sim(a: str, b: str) -> float:
     if not a.strip() or not b.strip():
         return 0.0
     try:
-        vec = TfidfVectorizer(stop_words='english', ngram_range=(1,2),
-                              token_pattern=r'\w{2,}', min_df=1)
+        vec = TfidfVectorizer(
+            stop_words="english",
+            ngram_range=(1, 2),
+            token_pattern=r"\w{2,}",
+            min_df=1
+        )
         mat = vec.fit_transform([a, b])
         if mat.shape[1] == 0:
             return 0.0
@@ -101,87 +103,46 @@ def tfidf_sim(a: str, b: str) -> float:
         return 0.0
 
 def score_candidate(resume: str, job_title: str, job_desc: str) -> float:
-    """
-    Multi-signal scoring:
-      40 pts  TF-IDF cosine similarity
-      35 pts  Keyword / skill overlap
-      15 pts  Experience match
-      10 pts  Education level
-    """
     if not resume or not resume.strip():
         return 0.0
 
-    job_full   = f"{job_title} {job_desc}"
-    r_clean    = clean(resume)
-    j_clean    = clean(job_full)
+    job_full = f"{job_title} {job_desc}"
+    r_clean = clean(resume)
+    j_clean = clean(job_full)
 
-    # 1. TF-IDF (40 pts) — raw cosine 0–~0.4 mapped to 0–40
-    raw_tfidf  = tfidf_sim(r_clean, j_clean)
-    s_tfidf    = min(raw_tfidf / 0.35, 1.0) * 40.0
+    raw_tfidf = tfidf_sim(r_clean, j_clean)
+    s_tfidf = min(raw_tfidf / 0.35, 1.0) * 40.0
 
-    # 2. Keyword overlap (35 pts)
     r_kw = extract_kw(resume)
     j_kw = extract_kw(job_full)
+
     if j_kw:
         kw_ratio = len(r_kw & j_kw) / len(j_kw)
     else:
-        # fallback: raw word overlap with boost
         r_words = set(r_clean.split())
         j_words = set(j_clean.split())
         kw_ratio = min(len(r_words & j_words) / max(len(j_words), 1) * 4, 1.0)
+
     s_kw = kw_ratio * 35.0
 
-    # 3. Experience (15 pts)
     r_exp = extract_years(resume)
     j_exp = extract_years(job_full)
+
     if j_exp == 0:
         exp_ratio = min(r_exp / 3.0, 1.0) if r_exp > 0 else 0.5
     else:
         exp_ratio = 1.0 if r_exp >= j_exp else (r_exp / j_exp if r_exp > 0 else 0.15)
-    s_exp = exp_ratio * 15.0
 
-    # 4. Education (10 pts)
+    s_exp = exp_ratio * 15.0
     s_edu = min(extract_edu(resume) / 3.0, 1.0) * 10.0
 
     total = round(min(s_tfidf + s_kw + s_exp + s_edu, 100.0), 2)
     print(f"[ML] tfidf={s_tfidf:.1f} kw={s_kw:.1f} exp={s_exp:.1f} edu={s_edu:.1f} => {total}")
     return total
 
-# ─── Endpoints ────────────────────────────────────────────────────────────────
-
-@app.post("/rank")
-async def rank_jobs(data: MatchRequest):
-    """Rank jobs for one resume. Called by frontend one candidate at a time."""
-    if not data.jobs:
-        return []
-    results = []
-    for job in data.jobs:
-        job_id = job.get("id") or job.get("_id") or "unknown"
-        title  = job.get("title", "") or ""
-        desc   = job.get("description") or job.get("jobDescription") or ""
-        score  = score_candidate(data.resume_content or "", title, desc)
-        results.append({"jobId": job_id, "score": score})
-    return sorted(results, key=lambda x: x["score"], reverse=True)
-
-
-@app.post("/rank-candidates")
-async def rank_candidates_batch(data: CandidateRequest):
-    """
-    Batch endpoint: rank ALL candidates for one job in a single call.
-    Frontend should prefer this over calling /rank N times.
-    """
-    results = []
-    for c in data.candidates:
-        resume = c.get("resumeContent") or c.get("resume_content") or ""
-        score  = score_candidate(resume, data.job_title or "", data.job_description)
-        results.append({
-            "userId": c.get("userId") or "",
-            "name":   c.get("name", ""),
-            "email":  c.get("email", ""),
-            "score":  score,
-        })
-    return sorted(results, key=lambda x: x["score"], reverse=True)
-
+@app.get("/")
+async def home():
+    return {"message": "Smart Hire ML service is running"}
 
 @app.get("/health")
 async def health():
@@ -195,6 +156,39 @@ async def health():
         }
     }
 
+@app.post("/rank")
+async def rank_jobs(data: MatchRequest):
+    if not data.jobs:
+        return []
+
+    results = []
+
+    for job in data.jobs:
+        job_id = job.get("id") or job.get("_id") or "unknown"
+        title = job.get("title", "") or ""
+        desc = job.get("description") or job.get("jobDescription") or ""
+        score = score_candidate(data.resume_content or "", title, desc)
+        results.append({"jobId": job_id, "score": score})
+
+    return sorted(results, key=lambda x: x["score"], reverse=True)
+
+@app.post("/rank-candidates")
+async def rank_candidates_batch(data: CandidateRequest):
+    results = []
+
+    for candidate in data.candidates:
+        resume = candidate.get("resumeContent") or candidate.get("resume_content") or ""
+        score = score_candidate(resume, data.job_title or "", data.job_description)
+
+        results.append({
+            "userId": candidate.get("userId") or "",
+            "name": candidate.get("name", ""),
+            "email": candidate.get("email", ""),
+            "score": score,
+        })
+
+    return sorted(results, key=lambda x: x["score"], reverse=True)
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
