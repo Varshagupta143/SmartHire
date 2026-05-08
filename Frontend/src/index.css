@@ -1,0 +1,45 @@
+body {
+  background-color: #f4f6fb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand-text .smart { color: #0d6efd; }
+.navbar-brand-text .hire { color: #fff; }
+
+.score-badge {
+  font-size: 1rem;
+  padding: 0.4em 0.8em;
+  border-radius: 20px;
+}
+
+.rank-1 { background: linear-gradient(135deg, #ffd700, #ffb300); color: #000; }
+.rank-2 { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #000; }
+.rank-3 { background: linear-gradient(135deg, #cd7f32, #b8693d); color: #fff; }
+
+.job-card {
+  border: none;
+  border-left: 4px solid #0d6efd;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.job-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+}
+
+.candidate-row:hover { background-color: #f0f4ff; }
+
+.resume-modal .modal-dialog { max-width: 700px; }
+
+.status-pending  { background-color: #ffc107; color: #000; }
+.status-accepted { background-color: #198754; color: #fff; }
+.status-rejected { background-color: #dc3545; color: #fff; }
+
+.sidebar {
+  min-height: 100vh;
+  background: #1e293b;
+  color: #fff;
+  padding-top: 1rem;
+}
+.sidebar .nav-link { color: #94a3b8; font-size: 0.95rem; padding: 0.6rem 1.2rem; border-radius: 8px; margin: 2px 8px; }
+.sidebar .nav-link:hover, .sidebar .nav-link.active { background: #334155; color: #fff; }
+.sidebar .nav-link svg { margin-right: 8px; }
