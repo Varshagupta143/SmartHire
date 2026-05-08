@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8081/api",
+  baseURL: import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`
+    : "http://localhost:8081/api",
 });
 
 API.interceptors.request.use((req) => {
@@ -16,7 +18,8 @@ API.interceptors.response.use(
     const data = err?.response?.data;
     let msg;
     if (typeof data === "string" && data.length > 0) msg = data;
-    else if (data && typeof data === "object") msg = data.message || data.error || JSON.stringify(data);
+    else if (data && typeof data === "object")
+      msg = data.message || data.error || JSON.stringify(data);
     else msg = err.message || "An error occurred";
     return Promise.reject(new Error(msg));
   }
