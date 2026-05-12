@@ -11,19 +11,9 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class SmartHireApplication {
 
+    
     public static void main(String[] args) {
         SpringApplication.run(SmartHireApplication.class, args);
-    }
-
-    @Bean
-    public MongoClient mongoClient() {
-        // This forces the connection to Atlas and ignores localhost
-        return MongoClients.create("mongodb+srv://vaibhavrathi140_db_user:SmartHire@cluster0.kujxpsh.mongodb.net/SmartHire?retryWrites=true&w=majority");
-    }
-
-    @Bean
-    public MongoTemplate mongoTemplate() {
-        return new MongoTemplate(mongoClient(), "SmartHire");
     }
 
     @Bean
