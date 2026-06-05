@@ -1,131 +1,117 @@
-# SmartHire — Full Stack Hiring Platform
+# SmartHire
 
-## Architecture
+SmartHire is a full-stack job portal built with Spring Boot, React, MongoDB Atlas, JWT authentication, and a FastAPI-based ML service.
 
-```
-SmartHire/
-├── Frontend/       React + Vite + Bootstrap 5
-├── Backend/        Spring Boot + MongoDB
-└── ML/             FastAPI + scikit-learn (TF-IDF ranking)
-```
+The platform allows candidates to browse jobs, upload resumes, check resume-job match score, and apply only if their resume matches the job by 50% or more. HR users can post jobs, review applicants, run ML-based ranking, accept or reject candidates, and send email notifications. Admin users can create HR accounts and monitor the platform.
 
 ---
 
 ## Features
 
-| Role      | Features |
-|-----------|----------|
-| Candidate | Browse jobs, click a job → upload resume → apply in one step |
-| HR        | See all jobs with applicant counts → click job → **Run ML Ranking** → view resume → Accept / Reject |
-| Admin     | Post jobs, **delete jobs**, view all users |
+### Candidate / User Features
+
+- Register and login
+- Browse all available jobs
+- Search jobs by title, company, or keywords
+- View complete job details
+- Upload resume while applying
+- Resume-job match score calculation
+- Apply only if match score is 50% or more
+- View applied jobs
+- View application status:
+    - PENDING
+    - ACCEPTED
+    - REJECTED
+- Receive email notification when application is accepted or rejected
 
 ---
 
-## Setup & Run
+### HR Features
 
-### 1. ML Service (Python — port 8000)
-
-```bash
-cd ML
-pip install -r requirements.txt
-python main.py
-```
-
-Verify: http://localhost:8000/health → `{"status":"ok"}`
-
----
-
-### 2. Backend (Spring Boot — port 8081)
-
-**Prerequisites:** Java 17+, Maven
-
-```bash
-cd Backend
-./mvnw spring-boot:run
-```
-
-MongoDB is pre-configured via Atlas (cloud). No local MongoDB needed.
-
-Verify: http://localhost:8081/api/jobs
+- Login with HR account created by Admin
+- Post new jobs
+- View only own posted jobs
+- View applicants for own jobs only
+- View candidate details and resume content
+- Run ML-based candidate ranking
+- Accept or reject candidates
+- Update application status
+- Send email notification to candidate on ACCEPTED / REJECTED status
+- If email sending fails, application status still updates and HR receives a warning
 
 ---
 
-### 3. Frontend (React — port 5173)
+### Admin Features
 
-```bash
-cd Frontend
-npm install
-npm run dev
-```
-
-Open: http://localhost:5173
-
----
-
-## Routes (Frontend)
-
-| Path              | Page                  | Role       |
-|-------------------|-----------------------|------------|
-| `/login`          | Login                 | Public     |
-| `/register`       | Register              | Public     |
-| `/user`           | Browse & Apply Jobs   | Candidate  |
-| `/user/jobs/:id`  | Job Detail + Apply    | Candidate  |
-| `/hr`             | HR Dashboard (jobs)   | HR / Admin |
-| `/hr/jobs/:jobId` | Applicants + Rankings | HR / Admin |
-| `/admin`          | Post/Delete Jobs      | Admin      |
+- Login as system admin
+- Create HR accounts
+- View all users
+- View all jobs
+- Monitor all applications
+- Manage platform-level data
 
 ---
 
-## API Endpoints (Backend)
+## Tech Stack
 
-### Jobs
-| Method | Path            | Description       |
-|--------|-----------------|-------------------|
-| GET    | /api/jobs       | List all jobs     |
-| POST   | /api/jobs       | Create job        |
-| DELETE | /api/jobs/{id}  | Delete job        |
+### Frontend
 
-### Applications
-| Method | Path                          | Description              |
-|--------|-------------------------------|--------------------------|
-| POST   | /api/applications/apply       | Submit application       |
-| GET    | /api/applications             | All applications (HR)    |
-| GET    | /api/applications/job/{jobId} | Applications for one job |
-| GET    | /api/applications/user/{uid}  | User's applications      |
-| PUT    | /api/applications/{id}/status | Accept / Reject          |
+- React
+- Vite
+- Bootstrap
+- Axios
+- React Router
 
-### Resumes
-| Method | Path                       | Description              |
-|--------|----------------------------|--------------------------|
-| POST   | /api/resumes/upload/{uid}  | Upload + extract resume  |
+### Backend
 
-### Users
-| Method | Path               | Description     |
-|--------|--------------------|-----------------|
-| POST   | /api/users/register | Register user  |
-| POST   | /api/users/login    | Login          |
-| GET    | /api/users          | All users      |
+- Java
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- MongoDB Atlas
+- Java Mail Sender
+- DTOs and Mappers
+- Jakarta Validation
 
 ### ML Service
-| Method | Path    | Description                        |
-|--------|---------|------------------------------------|
-| POST   | /rank   | Rank resume against job (0–100)    |
-| GET    | /health | Health check                       |
+
+- Python
+- FastAPI
+- TF-IDF
+- Cosine Similarity
+- Resume-job match scoring
+- Candidate ranking
+
+### Database
+
+- MongoDB Atlas
 
 ---
 
-## How ML Ranking Works
+## Project Structure
 
-1. HR opens a job's applicants page and clicks **"Run ML Ranking"**
-2. Frontend sends each candidate's `resumeContent` + the `job.description` to the Python `/rank` endpoint
-3. Python uses **TF-IDF cosine similarity** to score each resume against the job (0–100)
-4. Candidates are sorted by score, displayed with a progress bar
-5. HR can view full resume text, then Accept or Reject
-
----
-
-## Notes
-
-- Resume text is extracted server-side using Apache Tika (supports PDF, DOCX, TXT)
-- No JWT auth — uses `localStorage` user object (add Spring Security for production)
-- ML service must be running for rankings to work; the app still functions without it (scores show 0)
+```text
+SmartHire
+├── Backend
+│   ├── src/main/java/com/genius/smarthire
+│   │   ├── config
+│   │   ├── controller
+│   │   ├── dto
+│   │   ├── exception
+│   │   ├── mapper
+│   │   ├── model
+│   │   ├── repository
+│   │   ├── security
+│   │   └── service
+│   │
+│   └── src/main/resources/application.properties
+│
+├── Frontend
+│   ├── src/components
+│   ├── src/context
+│   ├── src/pages
+│   ├── src/routes
+│   └── src/services
+│
+└── ML
+    └── main.py
