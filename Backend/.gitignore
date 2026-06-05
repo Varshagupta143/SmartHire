@@ -31,3 +31,24 @@ build/
 
 ### VS Code ###
 .vscode/
+# Java / Spring Boot
+target/
+*.class
+
+# React
+node_modules/
+dist/
+.env
+.env.local
+
+# Uploads
+uploads/
+Backend/uploads/
+backend/uploads/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/

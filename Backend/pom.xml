@@ -85,10 +85,7 @@
         </dependency>
         <!-- Spring Data MongoDB (for MongoDB database connection) -->
         <!-- Spring Data MongoDB (for MongoDB database connection) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
