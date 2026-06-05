@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
   const role = (user?.role || "").toUpperCase();
 
   const handleLogout = () => {
@@ -12,7 +13,10 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar navbar-dark bg-dark px-4 d-flex justify-content-between align-items-center" style={{ minHeight: 56 }}>
+    <nav
+      className="navbar navbar-dark bg-dark px-4 d-flex justify-content-between align-items-center"
+      style={{ minHeight: 56 }}
+    >
       <Link className="navbar-brand fw-bold fs-4 text-decoration-none" to="/">
         <span className="text-primary">Smart</span>
         <span className="text-white">Hire</span>
@@ -27,16 +31,21 @@ export default function Navbar() {
             </span>
 
             {(role === "USER" || role === "CANDIDATE") && (
-              <Link className="btn btn-outline-light btn-sm" to="/user">Dashboard</Link>
+              <Link className="btn btn-outline-light btn-sm" to="/user">
+                Candidate Dashboard
+              </Link>
             )}
+
             {role === "HR" && (
-              <Link className="btn btn-outline-light btn-sm" to="/hr">HR Dashboard</Link>
+              <Link className="btn btn-outline-light btn-sm" to="/hr">
+                HR Dashboard
+              </Link>
             )}
+
             {role === "ADMIN" && (
-              <>
-                <Link className="btn btn-outline-light btn-sm" to="/admin">Admin</Link>
-                <Link className="btn btn-outline-light btn-sm" to="/hr">HR View</Link>
-              </>
+              <Link className="btn btn-outline-light btn-sm" to="/admin">
+                Admin Dashboard
+              </Link>
             )}
 
             <button className="btn btn-danger btn-sm" onClick={handleLogout}>
@@ -45,8 +54,13 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link className="btn btn-outline-light btn-sm" to="/login">Login</Link>
-            <Link className="btn btn-outline-light btn-sm" to="/register">Register</Link>
+            <Link className="btn btn-outline-light btn-sm" to="/login">
+              Login
+            </Link>
+
+            <Link className="btn btn-outline-light btn-sm" to="/register">
+              Register
+            </Link>
           </>
         )}
       </div>

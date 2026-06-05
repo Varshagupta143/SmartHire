@@ -2,8 +2,10 @@ package com.genius.smarthire.controller;
 
 import com.genius.smarthire.service.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 
 @RestController
@@ -14,8 +16,12 @@ public class ResumeController {
     @Autowired
     private ResumeService resumeService;
 
-    @PostMapping("/upload/{userId}")
-    public String upload(@PathVariable String userId, @RequestParam("file") MultipartFile file) throws IOException {
-        return resumeService.uploadResume(userId, file);
+    @PostMapping("/upload/me")
+    public String upload(
+            Authentication authentication,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        return resumeService.uploadResumeByEmail(authentication.getName(), file);
     }
 }

@@ -22,11 +22,11 @@ export default function JobDetailPage() {
         if (found) setJob(found);
       }).catch(console.error);
     }
-    if (user?.id) {
-      API.get(`/applications/user/${user.id}`).then((r) => {
-        setApplied(r.data.some((a) => a.jobId === id));
-      }).catch(() => {});
-    }
+   if (user?.id) {
+     API.get("/applications/me").then((r) => {
+       setApplied(r.data.some((a) => a.jobId === id));
+     }).catch(() => {});
+   }
   }, [id]);
 
   if (!job) return (

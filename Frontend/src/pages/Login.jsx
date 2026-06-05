@@ -16,8 +16,11 @@ export default function Login() {
     setError(""); setLoading(true);
     try {
       const res = await API.post("/users/login", { email, password });
+
       login(res.data);
-      const role = (res.data.role || "").toUpperCase();
+
+      const role = (res.data.user.role || "").toUpperCase();
+
       if (role === "ADMIN") nav("/admin");
       else if (role === "HR") nav("/hr");
       else nav("/user");

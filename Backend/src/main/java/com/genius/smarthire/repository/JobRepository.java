@@ -11,4 +11,5 @@ public interface JobRepository extends MongoRepository<Job, String> {
     List<Job> findByTitleRegex(String title);
 
     List<Job> findByLocationIgnoreCase(String location);
+    List<Job> findByPostedByHrEmail(String email);
 }

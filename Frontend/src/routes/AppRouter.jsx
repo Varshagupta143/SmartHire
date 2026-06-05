@@ -1,35 +1,63 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { PublicRoute, ProtectedRoute } from "./Guards";
-
+import { RoleRoute } from "./Guards";
+import JobDetails from "../pages/JobDetails";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import UserDashboard from "../pages/UserDashboard";
-import JobDetailPage from "../pages/JobDetailPage";
 import HRDashboard from "../pages/HRDashboard";
-import HRJobApplicants from "../pages/HRJobApplicants";
 import AdminDashboard from "../pages/AdminDashboard";
-import NotFound from "../pages/NotFound";
+import HRJobApplicants from "../pages/HRJobApplicants";
 
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Public routes */}
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
-      {/* Candidate routes */}
-      <Route path="/user"           element={<ProtectedRoute allowedRoles={["USER","CANDIDATE"]}><UserDashboard /></ProtectedRoute>} />
-      <Route path="/user/jobs/:id"  element={<ProtectedRoute allowedRoles={["USER","CANDIDATE"]}><JobDetailPage /></ProtectedRoute>} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+<Route
+  path="/user/jobs/:jobId"
+  element={
+    <RoleRoute allowedRoles={["USER", "CANDIDATE"]}>
+      <JobDetails />
+    </RoleRoute>
+  }
+/>
+      <Route
+        path="/user"
+        element={
+          <RoleRoute allowedRoles={["USER", "CANDIDATE"]}>
+            <UserDashboard />
+          </RoleRoute>
+        }
+      />
 
-      {/* HR routes */}
-      <Route path="/hr"                  element={<ProtectedRoute allowedRoles={["HR","ADMIN"]}><HRDashboard /></ProtectedRoute>} />
-      <Route path="/hr/jobs/:jobId"      element={<ProtectedRoute allowedRoles={["HR","ADMIN"]}><HRJobApplicants /></ProtectedRoute>} />
+      <Route
+        path="/hr"
+        element={
+          <RoleRoute allowedRoles={["HR"]}>
+            <HRDashboard />
+          </RoleRoute>
+        }
+      />
 
-      {/* Admin routes */}
-      <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
+      <Route
+        path="/hr/jobs/:jobId"
+        element={
+          <RoleRoute allowedRoles={["HR"]}>
+            <HRJobApplicants />
+          </RoleRoute>
+        }
+      />
 
-      <Route path="*" element={<NotFound />} />
+      <Route
+        path="/admin"
+        element={
+          <RoleRoute allowedRoles={["ADMIN"]}>
+            <AdminDashboard />
+          </RoleRoute>
+        }
+      />
     </Routes>
   );
 }

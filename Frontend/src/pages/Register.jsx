@@ -6,7 +6,7 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("USER");
+  //const [role, setRole] = useState("USER");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const nav = useNavigate();
@@ -15,7 +15,8 @@ export default function Register() {
     if (!name || !email || !password) { setError("All fields are required."); return; }
     setError(""); setLoading(true);
     try {
-      await API.post("/users/register", { name, email, password, role });
+      //await API.post("/users/register", { name, email, password, role });
+      await API.post("/users/register", { name, email, password });
       alert("Registered successfully! Please log in.");
       nav("/login");
     } catch (err) {
@@ -44,12 +45,7 @@ export default function Register() {
         <label className="form-label">Password</label>
         <input className="form-control mb-3" type="password" placeholder="Min 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
 
-        <label className="form-label">Account Type</label>
-        <select className="form-select mb-4" value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="USER">Job Seeker / Candidate</option>
-          <option value="HR">HR Manager</option>
-          <option value="ADMIN">Admin</option>
-        </select>
+
 
         <button className="btn btn-success w-100 py-2" onClick={handleRegister} disabled={loading}>
           {loading ? <><span className="spinner-border spinner-border-sm me-2" />Creating account…</> : "Create Account"}

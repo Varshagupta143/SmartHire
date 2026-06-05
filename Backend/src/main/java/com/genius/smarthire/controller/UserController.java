@@ -1,58 +1,90 @@
 package com.genius.smarthire.controller;
 
+import com.genius.smarthire.dto.AuthResponse;
+import com.genius.smarthire.dto.LoginRequest;
+import com.genius.smarthire.dto.RegisterRequest;
+import com.genius.smarthire.dto.UserResponse;
+import com.genius.smarthire.mapper.UserMapper;
 import com.genius.smarthire.model.User;
+import com.genius.smarthire.security.JwtService;
 import com.genius.smarthire.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UserMapper userMapper;
+
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
         try {
-            User created = userService.registerNewUser(user);
-            created.setPassword(null); // Never return hashed password
-            return ResponseEntity.ok(created);
+            User created = userService.registerNewUser(request);
+
+            return ResponseEntity.ok(userMapper.toResponse(created));
+
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginDetails) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            User user = userService.loginUser(loginDetails.getEmail(), loginDetails.getPassword());
-            user.setPassword(null); // Never return hashed password
-            return ResponseEntity.ok(user);
+            User user = userService.loginUser(
+                    request.getEmail(),
+                    request.getPassword()
+            );
+
+            String token = jwtService.generateToken(user);
+
+            AuthResponse response = new AuthResponse(
+                    token,
+                    userMapper.toResponse(user)
+            );
+
+            return ResponseEntity.ok(response);
+
         } catch (RuntimeException e) {
-            // FIX: Was returning 500 — now correctly returns 401 Unauthorized
-            Map<String, String> error = new HashMap<>();
-            error.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", e.getMessage()));
         }
     }
 
+    @GetMapping("/me")
+    public UserResponse getCurrentUser(Authentication authentication) {
+        User user = userService.getUserByEmail(authentication.getName());
+        return userMapper.toResponse(user);
+    }
+
     @GetMapping("/search-skill")
-    public List<User> searchSkill(@RequestParam String skill) {
-        return userService.searchBySkill(skill);
+    public List<UserResponse> searchSkill(@RequestParam String skill) {
+        return userService.searchBySkill(skill)
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponse> getAllUsers() {
+        return userService.getAllUsers()
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
     }
 }

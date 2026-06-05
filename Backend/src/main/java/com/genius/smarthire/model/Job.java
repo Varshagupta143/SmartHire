@@ -11,7 +11,8 @@ public class Job {
     private String description;
     private String company;
     private String location;
-
+    private String postedByHrId;
+    private String postedByHrEmail;
     // IMPORTANT: You need a default constructor
     public Job() {}
 
@@ -30,4 +31,19 @@ public class Job {
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+    public String getPostedByHrId() {
+        return postedByHrId;
+    }
+
+    public void setPostedByHrId(String postedByHrId) {
+        this.postedByHrId = postedByHrId;
+    }
+
+    public String getPostedByHrEmail() {
+        return postedByHrEmail;
+    }
+
+    public void setPostedByHrEmail(String postedByHrEmail) {
+        this.postedByHrEmail = postedByHrEmail;
+    }
 }
