@@ -1,10 +1,13 @@
 package com.genius.smarthire.dto;
-
+import jakarta.validation.constraints.NotBlank;
 public class CreateJobRequest {
-
+    @NotBlank(message = "Job title is required")
     private String title;
+    @NotBlank(message = "Company is required")
     private String company;
+    @NotBlank(message = "Location is required")
     private String location;
+    @NotBlank(message = "Job description is required")
     private String description;
 
     public CreateJobRequest() {

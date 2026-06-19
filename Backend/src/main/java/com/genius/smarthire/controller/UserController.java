@@ -9,11 +9,12 @@ import com.genius.smarthire.model.User;
 import com.genius.smarthire.security.JwtService;
 import com.genius.smarthire.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import com.genius.smarthire.dto.VerifyOtpRequest;
+import com.genius.smarthire.service.OtpService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private OtpService otpService;
     @Autowired
     private JwtService jwtService;
 
@@ -31,44 +33,69 @@ public class UserController {
     private UserMapper userMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
-        try {
-            User created = userService.registerNewUser(request);
+    public ResponseEntity<UserResponse> registerUser(
+            @Valid @RequestBody RegisterRequest request
+    ) {
+        User created = userService.registerNewUser(request);
 
-            return ResponseEntity.ok(userMapper.toResponse(created));
-
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
-        }
+        return ResponseEntity.ok(userMapper.toResponse(created));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
-            User user = userService.loginUser(
-                    request.getEmail(),
-                    request.getPassword()
-            );
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        User user = userService.loginUser(
+                request.getEmail(),
+                request.getPassword()
+        );
 
-            String token = jwtService.generateToken(user);
+        /*
+         * Password is correct.
+         * But we do not generate JWT yet.
+         * First send OTP to email.
+         */
+        otpService.generateAndSendOtp(user.getEmail());
 
-            AuthResponse response = new AuthResponse(
-                    token,
-                    userMapper.toResponse(user)
-            );
+        return ResponseEntity.ok(Map.of(
+                "message", "OTP sent to your email",
+                "otpRequired", true,
+                "email", user.getEmail()
+        ));
+    }
+    @PostMapping("/verify-otp")
+    public ResponseEntity<AuthResponse> verifyOtp(
+            @Valid @RequestBody VerifyOtpRequest request
+    ) {
+        /*
+         * First verify OTP.
+         * If OTP is wrong/expired, exception will be handled by GlobalExceptionHandler.
+         */
+        otpService.verifyOtp(
+                request.getEmail(),
+                request.getOtp()
+        );
 
-            return ResponseEntity.ok(response);
+        /*
+         * OTP is correct.
+         * Now generate JWT.
+         */
+        User user = userService.getUserByEmail(request.getEmail());
 
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", e.getMessage()));
-        }
+        String token = jwtService.generateToken(user);
+
+        AuthResponse response = new AuthResponse(
+                token,
+                userMapper.toResponse(user)
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
     public UserResponse getCurrentUser(Authentication authentication) {
         User user = userService.getUserByEmail(authentication.getName());
+
         return userMapper.toResponse(user);
     }
 

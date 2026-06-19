@@ -1,8 +1,10 @@
 package com.genius.smarthire.controller;
-import com.genius.smarthire.mapper.UserMapper;
+
 import com.genius.smarthire.dto.CreateHrRequest;
+import com.genius.smarthire.mapper.UserMapper;
 import com.genius.smarthire.model.User;
 import com.genius.smarthire.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,23 +22,20 @@ public class AdminController {
         this.userService = userService;
         this.userMapper = userMapper;
     }
+
     @PostMapping("/create-hr")
-    public ResponseEntity<?> createHr(@RequestBody CreateHrRequest request) {
-        try {
-            User hr = userService.createHrUser(
-                    request.getName(),
-                    request.getEmail(),
-                    request.getPassword()
-            );
+    public ResponseEntity<?> createHr(
+            @Valid @RequestBody CreateHrRequest request
+    ) {
+        User hr = userService.createHrUser(
+                request.getName(),
+                request.getEmail(),
+                request.getPassword()
+        );
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "HR created successfully",
-                    "hr", userMapper.toResponse(hr)
-            ));
-
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("message", e.getMessage()));
-        }
+        return ResponseEntity.ok(Map.of(
+                "message", "HR created successfully",
+                "hr", userMapper.toResponse(hr)
+        ));
     }
 }

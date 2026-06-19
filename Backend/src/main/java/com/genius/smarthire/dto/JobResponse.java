@@ -10,11 +10,27 @@ public class JobResponse {
     private String postedByHrId;
     private String postedByHrEmail;
 
+    /*
+     * Job status is sent to frontend so that:
+     *
+     * Candidate side:
+     * - can show/apply only OPEN jobs
+     *
+     * HR side:
+     * - can see whether own job is OPEN or CLOSED
+     * - can close/reopen job
+     *
+     * Admin side:
+     * - can monitor all jobs with their status
+     */
+    private String status;
+
     public JobResponse() {
     }
 
     public JobResponse(String id, String title, String company, String location,
-                       String description, String postedByHrId, String postedByHrEmail) {
+                       String description, String postedByHrId,
+                       String postedByHrEmail, String status) {
         this.id = id;
         this.title = title;
         this.company = company;
@@ -22,6 +38,7 @@ public class JobResponse {
         this.description = description;
         this.postedByHrId = postedByHrId;
         this.postedByHrEmail = postedByHrEmail;
+        this.status = status;
     }
 
     public String getId() {
@@ -52,6 +69,10 @@ public class JobResponse {
         return postedByHrEmail;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -78,5 +99,9 @@ public class JobResponse {
 
     public void setPostedByHrEmail(String postedByHrEmail) {
         this.postedByHrEmail = postedByHrEmail;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

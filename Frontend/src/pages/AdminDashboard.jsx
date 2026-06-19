@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import API from "../services/api";
-
+import Footer from "../components/Footer";
 export default function AdminDashboard() {
   const [hr, setHr] = useState({
     name: "",
@@ -17,19 +17,28 @@ export default function AdminDashboard() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-
-const handleHrChange = (field, value) => {
-  setHr({
-    ...hr,
-    [field]: value,
-  });
-};
+  const handleHrChange = (field, value) => {
+    setHr({
+      ...hr,
+      [field]: value,
+    });
+  };
 
   const loadAdminData = async () => {
     try {
+      /*
+        Admin should see all jobs:
+        - OPEN jobs
+        - CLOSED jobs
+
+        So we call /jobs/all instead of /jobs.
+
+        /jobs     => only OPEN jobs for candidates
+        /jobs/all => all jobs for admin
+      */
       const [usersRes, jobsRes, appsRes] = await Promise.all([
         API.get("/users"),
-        API.get("/jobs"),
+        API.get("/jobs/all"),
         API.get("/applications"),
       ]);
 
@@ -38,6 +47,7 @@ const handleHrChange = (field, value) => {
       setApplications(appsRes.data);
     } catch (err) {
       console.error("Failed to load admin data:", err);
+      setError(err.response?.data?.message || err.message || "Failed to load admin data");
     }
   };
 
@@ -64,13 +74,16 @@ const handleHrChange = (field, value) => {
 
       loadAdminData();
     } catch (err) {
-      setError(err.message || "Failed to create HR");
+      setError(err.response?.data?.message || err.message || "Failed to create HR");
     }
   };
 
   const hrUsers = users.filter(
     (u) => (u.role || "").toUpperCase() === "HR"
   );
+
+  const openJobs = jobs.filter((job) => (job.status || "OPEN") === "OPEN");
+  const closedJobs = jobs.filter((job) => job.status === "CLOSED");
 
   return (
     <>
@@ -85,7 +98,7 @@ const handleHrChange = (field, value) => {
             </p>
           </div>
 
-          <div className="d-flex gap-3">
+          <div className="d-flex gap-3 flex-wrap">
             <div className="card border-0 shadow-sm text-center px-4 py-2">
               <div className="fs-4 fw-bold text-primary">{hrUsers.length}</div>
               <div className="text-muted small">HR Accounts</div>
@@ -98,7 +111,17 @@ const handleHrChange = (field, value) => {
 
             <div className="card border-0 shadow-sm text-center px-4 py-2">
               <div className="fs-4 fw-bold text-warning">{jobs.length}</div>
-              <div className="text-muted small">Jobs</div>
+              <div className="text-muted small">Total Jobs</div>
+            </div>
+
+            <div className="card border-0 shadow-sm text-center px-4 py-2">
+              <div className="fs-4 fw-bold text-success">{openJobs.length}</div>
+              <div className="text-muted small">Open Jobs</div>
+            </div>
+
+            <div className="card border-0 shadow-sm text-center px-4 py-2">
+              <div className="fs-4 fw-bold text-secondary">{closedJobs.length}</div>
+              <div className="text-muted small">Closed Jobs</div>
             </div>
 
             <div className="card border-0 shadow-sm text-center px-4 py-2">
@@ -152,46 +175,47 @@ const handleHrChange = (field, value) => {
         {activeTab === "createHr" && (
           <div className="card p-4 shadow-sm">
             <h4>Create HR Account</h4>
-             <form onSubmit={handleCreateHr} autoComplete="off">
+
+            <form onSubmit={handleCreateHr} autoComplete="off">
               <div className="mb-3">
                 <label className="form-label">HR Name</label>
-               <input
-                 className="form-control"
-                 name="hrName"
-                 value={hr.name}
-                 onChange={(e) => handleHrChange("name", e.target.value)}
-                 placeholder="e.g. HR Manager"
-                 autoComplete="off"
-                 required
-               />
+                <input
+                  className="form-control"
+                  name="hrName"
+                  value={hr.name}
+                  onChange={(e) => handleHrChange("name", e.target.value)}
+                  placeholder="e.g. HR Manager"
+                  autoComplete="off"
+                  required
+                />
               </div>
 
               <div className="mb-3">
                 <label className="form-label">HR Email</label>
-               <input
-                 className="form-control"
-                 name="hrEmail"
-                 type="email"
-                 value={hr.email}
-                 onChange={(e) => handleHrChange("email", e.target.value)}
-                 placeholder="e.g. hr@company.com"
-                 autoComplete="off"
-                 required
-               />
+                <input
+                  className="form-control"
+                  name="hrEmail"
+                  type="email"
+                  value={hr.email}
+                  onChange={(e) => handleHrChange("email", e.target.value)}
+                  placeholder="e.g. hr@company.com"
+                  autoComplete="off"
+                  required
+                />
               </div>
 
               <div className="mb-3">
                 <label className="form-label">HR Password</label>
-               <input
-                 className="form-control"
-                 name="hrPassword"
-                 type="password"
-                 value={hr.password}
-                 onChange={(e) => handleHrChange("password", e.target.value)}
-                 placeholder="Create password for HR"
-                 autoComplete="new-password"
-                 required
-               />
+                <input
+                  className="form-control"
+                  name="hrPassword"
+                  type="password"
+                  value={hr.password}
+                  onChange={(e) => handleHrChange("password", e.target.value)}
+                  placeholder="Create password for HR"
+                  autoComplete="new-password"
+                  required
+                />
               </div>
 
               <button className="btn btn-primary" type="submit">
@@ -233,23 +257,56 @@ const handleHrChange = (field, value) => {
 
         {activeTab === "jobs" && (
           <div className="card p-4 shadow-sm">
-            <h4>All Jobs</h4>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <h4 className="mb-0">All Jobs</h4>
+                <p className="text-muted mb-0 small">
+                  Admin can see both open and closed jobs.
+                </p>
+              </div>
+
+              <div className="d-flex gap-2">
+                <span className="badge bg-success">OPEN: {openJobs.length}</span>
+                <span className="badge bg-secondary">CLOSED: {closedJobs.length}</span>
+              </div>
+            </div>
 
             {jobs.length === 0 ? (
               <p className="text-muted mt-3">No jobs posted yet.</p>
             ) : (
-              jobs.map((job) => (
-                <div className="border rounded p-3 mb-3" key={job.id}>
-                  <h5>{job.title}</h5>
-                  <p className="mb-1">
-                    <strong>{job.company}</strong> · {job.location}
-                  </p>
-                  <p className="text-muted mb-1">{job.description}</p>
-                  <small>
-                    Posted by: {job.postedByHrEmail || "Old job / not assigned"}
-                  </small>
-                </div>
-              ))
+              <div className="mt-3">
+                {jobs.map((job) => {
+                  const status = job.status || "OPEN";
+
+                  return (
+                    <div className="border rounded p-3 mb-3" key={job.id}>
+                      <div className="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                          <h5 className="mb-1">{job.title}</h5>
+                          <p className="mb-1">
+                            <strong>{job.company}</strong>
+                            {job.location && <> · {job.location}</>}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`badge ${
+                            status === "CLOSED" ? "bg-secondary" : "bg-success"
+                          }`}
+                        >
+                          {status}
+                        </span>
+                      </div>
+
+                      <p className="text-muted mb-1">{job.description}</p>
+
+                      <small className="text-muted">
+                        Posted by: {job.postedByHrEmail || "Old job / not assigned"}
+                      </small>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
@@ -294,6 +351,7 @@ const handleHrChange = (field, value) => {
           </div>
         )}
       </div>
+       <Footer />
     </>
   );
 }

@@ -7,7 +7,10 @@ import UserDashboard from "../pages/UserDashboard";
 import HRDashboard from "../pages/HRDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import HRJobApplicants from "../pages/HRJobApplicants";
-
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+import MyApplications from "../pages/MyApplications";
+import OAuthSuccess from "../pages/OAuthSuccess";
 export default function AppRouter() {
   return (
     <Routes>
@@ -15,6 +18,9 @@ export default function AppRouter() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/oauth-success" element={<OAuthSuccess />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 <Route
   path="/user/jobs/:jobId"
   element={
@@ -31,7 +37,14 @@ export default function AppRouter() {
           </RoleRoute>
         }
       />
-
+    <Route
+      path="/user/applications"
+      element={
+        <RoleRoute allowedRoles={["USER", "CANDIDATE"]}>
+          <MyApplications />
+        </RoleRoute>
+      }
+    />
       <Route
         path="/hr"
         element={

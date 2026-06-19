@@ -9,11 +9,15 @@ import com.genius.smarthire.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.genius.smarthire.dto.ApplicationStatusUpdateResult;
+
 import java.util.List;
 
 @Service
 public class ApplicationService {
 
+    /*
+     * Candidate can apply only if resume-job match score is >= 50%.
+     */
     private static final double MINIMUM_MATCH_SCORE = 50.0;
 
     @Autowired
@@ -24,11 +28,26 @@ public class ApplicationService {
 
     @Autowired
     private JobRepository jobRepository;
+
     @Autowired
     private EmailService emailService;
+
     @Autowired
     private MatchScoreService matchScoreService;
 
+    /*
+     * Candidate applies for a job.
+     *
+     * Flow:
+     * 1. Find logged-in user using email from JWT
+     * 2. Find job using jobId
+     * 3. Check if job is CLOSED
+     * 4. Check resume uploaded or not
+     * 5. Check duplicate application
+     * 6. Calculate ML score using FastAPI through MatchScoreService
+     * 7. Allow apply only if score >= 50
+     * 8. Save application with PENDING status
+     */
     public Application applyForJob(String userEmail, String jobId) {
 
         User user = userRepository.findByEmail(userEmail)
@@ -36,6 +55,18 @@ public class ApplicationService {
 
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        /*
+         * Important:
+         * CLOSED jobs remain in database for Admin/HR history,
+         * but candidates should not be allowed to apply.
+         *
+         * Even if candidate uses Postman manually,
+         * backend will block the application.
+         */
+        if ("CLOSED".equalsIgnoreCase(job.getStatus())) {
+            throw new RuntimeException("This job is closed. You cannot apply.");
+        }
 
         if (user.getResumeContent() == null || user.getResumeContent().isBlank()) {
             throw new RuntimeException("Please upload your resume before applying.");
@@ -45,6 +76,9 @@ public class ApplicationService {
             throw new RuntimeException("You have already applied for this job.");
         }
 
+        /*
+         * This uses your FastAPI ML service through MatchScoreService.
+         */
         double score = matchScoreService.calculateScore(user.getResumeContent(), job);
 
         if (score < MINIMUM_MATCH_SCORE) {
@@ -63,6 +97,13 @@ public class ApplicationService {
         return applicationRepository.save(application);
     }
 
+    /*
+     * Candidate checks match score for a job.
+     *
+     * Note:
+     * We can still allow score checking for CLOSED jobs,
+     * but applying is blocked in applyForJob().
+     */
     public double getMatchScoreForJob(String userEmail, String jobId) {
 
         User user = userRepository.findByEmail(userEmail)
@@ -90,10 +131,29 @@ public class ApplicationService {
         return applicationRepository.findAll();
     }
 
-    public ApplicationStatusUpdateResult updateApplicationStatus(String id, String status) {
-
+    /*
+     * HR updates candidate application status.
+     *
+     * Important:
+     * HR can update only applications for jobs posted by that HR.
+     */
+    public ApplicationStatusUpdateResult updateApplicationStatus(
+            String id,
+            String status,
+            String hrEmail
+    ) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        Job job = jobRepository.findById(application.getJobId())
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        if (job.getPostedByHrEmail() == null ||
+                !job.getPostedByHrEmail().equalsIgnoreCase(hrEmail)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You are not allowed to update status for this application"
+            );
+        }
 
         String oldStatus = application.getStatus();
 
@@ -101,13 +161,13 @@ public class ApplicationService {
 
         Application updatedApplication = applicationRepository.save(application);
 
+        /*
+         * Send email only when status actually changes.
+         */
         if (oldStatus == null || !status.equalsIgnoreCase(oldStatus)) {
             try {
                 User candidate = userRepository.findById(application.getUserId())
                         .orElseThrow(() -> new RuntimeException("Candidate not found"));
-
-                Job job = jobRepository.findById(application.getJobId())
-                        .orElseThrow(() -> new RuntimeException("Job not found"));
 
                 emailService.sendApplicationStatusEmail(
                         candidate.getEmail(),
@@ -137,6 +197,10 @@ public class ApplicationService {
                 "Status already updated. Email was not sent again."
         );
     }
+
+    /*
+     * HR can view applicants only for their own job.
+     */
     public List<Application> getApplicationsForHrJob(String hrEmail, String jobId) {
 
         Job job = jobRepository.findById(jobId)
@@ -149,6 +213,10 @@ public class ApplicationService {
 
         return applicationRepository.findByJobId(jobId);
     }
+
+    /*
+     * Candidate can see their own applications.
+     */
     public List<Application> getApplicationsByUserEmail(String email) {
 
         User user = userRepository.findByEmail(email)

@@ -60,4 +60,50 @@ public class EmailService {
 
         mailSender.send(mailMessage);
     }
+    public void sendPasswordResetEmail(String toEmail, String resetLink) {
+        System.out.println("Sending password reset email to: " + toEmail);
+        System.out.println("Reset link: " + resetLink);
+        String subject = "Reset Your SmartHire Password";
+
+        String message = "Hello,\n\n"
+                + "We received a request to reset your SmartHire password.\n\n"
+                + "Click the link below to reset your password:\n"
+                + resetLink + "\n\n"
+                + "This link will expire in 15 minutes.\n\n"
+                + "If you did not request this, please ignore this email.\n\n"
+                + "Regards,\n"
+                + "SmartHire Team";
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+
+        mailMessage.setFrom(fromEmail);
+        mailMessage.setTo(toEmail);
+        mailMessage.setSubject(subject);
+        mailMessage.setText(message);
+
+        mailSender.send(mailMessage);
+        System.out.println("Password reset email sent successfully to: " + toEmail);
+    }
+    public void sendOtpEmail(String toEmail, String otp) {
+        String subject = "SmartHire Login OTP";
+
+        String message = "Hello,\n\n"
+                + "Your SmartHire login OTP is:\n\n"
+                + otp + "\n\n"
+                + "This OTP is valid for 5 minutes.\n\n"
+                + "If you did not try to login, please ignore this email.\n\n"
+                + "Regards,\n"
+                + "SmartHire Team";
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+
+        mailMessage.setFrom(fromEmail);
+        mailMessage.setTo(toEmail);
+        mailMessage.setSubject(subject);
+        mailMessage.setText(message);
+
+        mailSender.send(mailMessage);
+
+        System.out.println("OTP email sent successfully to: " + toEmail);
+    }
 }

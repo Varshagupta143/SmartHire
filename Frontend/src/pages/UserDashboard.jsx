@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import ResumeUploadModal from "../components/ResumeUploadModal";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
-
+import Footer from "../components/Footer";
 export default function UserDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -78,9 +78,12 @@ export default function UserDashboard() {
             </p>
           </div>
 
-          <span className="badge bg-primary fs-6 py-2 px-3">
-            {myApplications.length} Applied
-          </span>
+       <button
+         className="btn btn-primary"
+         onClick={() => navigate("/user/applications")}
+       >
+         {myApplications.length} Applied
+       </button>
         </div>
 
         {toast && (
@@ -222,6 +225,7 @@ export default function UserDashboard() {
           }}
         />
       )}
+   <Footer />
     </>
   );
 }
