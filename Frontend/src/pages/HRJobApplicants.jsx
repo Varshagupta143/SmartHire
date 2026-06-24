@@ -51,8 +51,8 @@ export default function HRJobApplicants() {
         Backend endpoint:
         GET /api/applications/job/{jobId}
 
-        This should now return application + candidate details:
-        candidateName, candidateEmail, resumeContent, resumePath
+         This returns application + candidate details:
+         candidateName, candidateEmail, resumeContent
       */
       const appsRes = await API.get(`/applications/job/${jobId}`);
       const apps = appsRes.data;
@@ -70,7 +70,6 @@ export default function HRJobApplicants() {
           name: app.candidateName || "Unknown",
           email: app.candidateEmail || "",
           resumeContent: app.resumeContent || "",
-          resumePath: app.resumePath || "",
 
           status: app.status || "PENDING",
           appliedAt: app.appliedAt,

@@ -109,7 +109,14 @@ public class SecurityConfig {
                         /*
                          * Candidate APIs.
                          */
-                        .requestMatchers(HttpMethod.POST, "/api/resumes/**").hasAnyRole("USER", "CANDIDATE")
+                        .requestMatchers(HttpMethod.POST, "/api/resumes/**")
+                        .hasAnyRole("USER", "CANDIDATE")
+
+                        .requestMatchers(HttpMethod.GET, "/api/resumes/me/download")
+                        .hasAnyRole("USER", "CANDIDATE")
+
+                        .requestMatchers(HttpMethod.GET, "/api/resumes/application/*/download")
+                        .hasAnyRole("HR", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/applications/apply").hasAnyRole("USER", "CANDIDATE")
                         .requestMatchers(HttpMethod.GET, "/api/applications/score/**").hasAnyRole("USER", "CANDIDATE")
                         .requestMatchers(HttpMethod.GET, "/api/applications/me").hasAnyRole("USER", "CANDIDATE")

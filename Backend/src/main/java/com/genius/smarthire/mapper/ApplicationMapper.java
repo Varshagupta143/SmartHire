@@ -21,12 +21,14 @@ public class ApplicationMapper {
                 application.getStatus(),
                 null,
                 null,
-                null,
                 null
         );
     }
 
-    public ApplicationResponse toResponse(Application application, User user) {
+    public ApplicationResponse toResponse(
+            Application application,
+            User user
+    ) {
         if (application == null) {
             return null;
         }
@@ -39,8 +41,7 @@ public class ApplicationMapper {
                 application.getStatus(),
                 user != null ? user.getName() : null,
                 user != null ? user.getEmail() : null,
-                user != null ? user.getResumeContent() : null,
-                user != null ? user.getResumePath() : null
+                user != null ? user.getResumeContent() : null
         );
     }
 }

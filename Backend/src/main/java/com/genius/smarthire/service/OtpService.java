@@ -36,8 +36,6 @@ public class OtpService {
 
         emailService.sendOtpEmail(email, otp);
 
-        // Useful for local testing
-        System.out.println("Login OTP for " + email + " is: " + otp);
     }
 
     /*

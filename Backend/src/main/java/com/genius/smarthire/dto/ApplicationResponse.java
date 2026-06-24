@@ -11,15 +11,20 @@ public class ApplicationResponse {
     private String candidateName;
     private String candidateEmail;
     private String resumeContent;
-    private String resumePath;
 
     public ApplicationResponse() {
     }
 
-    public ApplicationResponse(String id, String jobId, String userId,
-                               double matchScore, String status,
-                               String candidateName, String candidateEmail,
-                               String resumeContent, String resumePath) {
+    public ApplicationResponse(
+            String id,
+            String jobId,
+            String userId,
+            double matchScore,
+            String status,
+            String candidateName,
+            String candidateEmail,
+            String resumeContent
+    ) {
         this.id = id;
         this.jobId = jobId;
         this.userId = userId;
@@ -28,7 +33,6 @@ public class ApplicationResponse {
         this.candidateName = candidateName;
         this.candidateEmail = candidateEmail;
         this.resumeContent = resumeContent;
-        this.resumePath = resumePath;
     }
 
     public String getId() {
@@ -63,10 +67,6 @@ public class ApplicationResponse {
         return resumeContent;
     }
 
-    public String getResumePath() {
-        return resumePath;
-    }
-
     public void setId(String id) {
         this.id = id;
     }
@@ -97,9 +97,5 @@ public class ApplicationResponse {
 
     public void setResumeContent(String resumeContent) {
         this.resumeContent = resumeContent;
-    }
-
-    public void setResumePath(String resumePath) {
-        this.resumePath = resumePath;
     }
 }

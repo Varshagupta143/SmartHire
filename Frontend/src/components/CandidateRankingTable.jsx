@@ -1,13 +1,14 @@
 import { useState } from "react";
-
+import API from "../services/api";
 /**
  * Props:
- *   candidates: Array<{ userId, name, email, score, status, applicationId, resumeContent, resumePath }>
+ *   *   candidates: Array<{ userId, name, email, score, status, applicationId, resumeContent }>
  *   onUpdateStatus(applicationId, status): Promise
  */
 export default function CandidateRankingTable({ candidates, onUpdateStatus }) {
   const [viewResume, setViewResume] = useState(null); // candidate object
   const [updating, setUpdating] = useState(null);
+  const [downloading, setDownloading] = useState(null);
 
   const handleStatus = async (applicationId, status) => {
     setUpdating(applicationId);
@@ -17,7 +18,29 @@ export default function CandidateRankingTable({ candidates, onUpdateStatus }) {
       setUpdating(null);
     }
   };
+  const handleDownloadResume = async (applicationId) => {
+    setDownloading(applicationId);
 
+    try {
+      const response = await API.get(
+        `/resumes/application/${applicationId}/download`
+      );
+
+      const link = document.createElement("a");
+
+      link.href = response.data.url;
+      link.rel = "noreferrer";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+    } catch (error) {
+      alert(error.message || "Could not download resume.");
+    } finally {
+      setDownloading(null);
+    }
+  };
   const rankBadge = (idx) => {
     if (idx === 0) return <span className="badge rank-1 score-badge">🥇 #1</span>;
     if (idx === 1) return <span className="badge rank-2 score-badge">🥈 #2</span>;
@@ -128,6 +151,17 @@ export default function CandidateRankingTable({ candidates, onUpdateStatus }) {
                 </pre>
               </div>
               <div className="modal-footer">
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    disabled={downloading === viewResume.applicationId}
+                    onClick={() =>
+                      handleDownloadResume(viewResume.applicationId)
+                    }
+                  >
+                    {downloading === viewResume.applicationId
+                      ? "Preparing..."
+                      : "⬇ Download Original"}
+                  </button>
                 <button
                   className="btn btn-success btn-sm"
                   disabled={viewResume.status === "ACCEPTED"}
